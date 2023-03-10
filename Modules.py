@@ -1,5 +1,6 @@
-from tensorflow.python.keras.layers import GlobalAveragePooling2D, Reshape, Dense, multiply, add, Permute, Conv2D
-from tensorflow.python.keras import backend as K
+from tensorflow.keras.layers import GlobalAveragePooling2D, Reshape, Dense, multiply, add, Permute, Conv2D, Add,Concatenate
+from tensorflow.keras import backend as K
+from cbam_attention import cbam_block_improved
 
 
 def squeeze_excite_block(input, ratio=16):
@@ -13,7 +14,7 @@ def squeeze_excite_block(input, ratio=16):
     '''
     init = input
     channel_axis = 1 if K.image_data_format() == "channels_first" else -1
-    filters = init._keras_shape[channel_axis]
+    filters = init.keras_shape[channel_axis]
     se_shape = (1, 1, filters)
 
     se = GlobalAveragePooling2D()(init)
@@ -60,3 +61,22 @@ def channel_spatial_squeeze_excite(input, ratio=16):
 
     x = add([cse, sse])
     return x
+
+
+# Proposed algorithm for mid-level feature extraction
+def EACRM(input_tensor):
+    lev_1 = Conv2D(256, (1, 1))(input_tensor)  # 1x1 convolution and reduce channel
+    print(lev_1.shape)
+    lev_2 = Conv2D(256, (3, 3))(input_tensor)  # 3x3 convolution and reduce channel
+    # lev_2= GlobalAveragePooling2D()(lev_2)
+    # print(lev_2.shape)
+    lev_3 = cbam_block_improved(input_tensor)  # CBAM modified block
+    print(lev_3.shape)
+    # res1 = multiply([lev_1, lev_3])
+    res1 = Concatenate()([lev_1, lev_3]) # it was add() previously, could work but memory overflow
+    return res1
+
+
+def conv1by1(input_tensor):
+    tensor = Conv2D(256, (1, 1))(input_tensor)
+    return tensor
