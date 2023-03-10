@@ -60,10 +60,10 @@ def custom_resnet50(model, classes):
     invert3 = model.get_layer('conv5_block3_out').output
 
     # EARCM module around 92.4%
-    invert11_,inv11 = Modules.EACRM(invert11_)
-    invert1,inv1 = Modules.EACRM(invert1)
-    invert2,inv2 = Modules.EACRM(invert2)
-    invert3,inv3 = Modules.EACRM(invert3)
+    invert11_ = Modules.EACRM(invert11_)
+    invert1 = Modules.EACRM(invert1)
+    invert2 = Modules.EACRM(invert2)
+    invert3 = Modules.EACRM(invert3)
 
     # cbam-test around 92%
     # invert11_ = cbam_attention.cbam_block(invert11)
@@ -109,11 +109,11 @@ def custom_resnet50(model, classes):
     return model
 
 
-def train_ml(model, train_batches, valid_batches, classes):
+def train_ml(model, train_batches, valid_batches, classes,NUM_EPOCHS):
     m = custom_resnet50(model, classes)
     print(m.summary())
     # m=model
-    NUM_EPOCHS = 30
+    #NUM_EPOCHS = 30
     LEARNING_RATE = 0.0003
     m.compile(loss='categorical_crossentropy',  # for multiclass use categorical_crossentropy
               # optimizer=optimizers.SGD(lr=LEARNING_RATE,momentum=0.9),
@@ -259,7 +259,6 @@ if __name__ == '__main__':
     # model =ResNet50()
     model.summary()
     model.trainable = True
-
     # for layer in model.layers[:20]:  # upto 36 is alright
     #     layer.trainable = False
     # j=0
@@ -269,69 +268,69 @@ if __name__ == '__main__':
     acc = []
     for i in range(0, 20):
         # # data load and train
-        root_path = "D://Jagannath_dai/NWPU_/1_9/" + str(i + 1) + '/'
-        DATASET_PATH = root_path + 'train'
-        test_dir = root_path + 'val'
-        # DATASET_PATH = root_path/train'
-        # test_dir = 'root_path/val'
-        IMAGE_SIZE = (224, 224)
-        data_list = os.listdir(DATASET_PATH)
-        # data_list = os.listdir('D:/COVID/four_classes/splits/f4/train')
-        # Delete some classes that may interfere
-        print(len(data_list))
-        NUM_CLASSES = len(data_list)
-        BATCH_SIZE = 16  # try reducing batch size or freeze more layers if your GPU runs out of memory
-
-        # Train datagen here is a preprocessor
-        train_datagen = ImageDataGenerator(rescale=1. / 255,
-                                           # rotation_range=50,
-                                           # width_shift_range=0.2,
-                                           # height_shift_range=0.2,
-                                           # shear_range=0.25,
-                                           # zoom_range=0.1,
-                                           # channel_shift_range=20,
-                                           horizontal_flip=True,
-                                           # ertical_flip=True,
-                                           # validation_split=0.2,
-                                           # fill_mode='constant'
-                                           )
-
-        test_datagen = ImageDataGenerator(rescale=1. / 255)
-
-        train_batches = train_datagen.flow_from_directory(DATASET_PATH,
-                                                          target_size=IMAGE_SIZE,
-                                                          shuffle=True,
-                                                          interpolation='lanczos:random',  # <--------- random crop
-                                                          batch_size=BATCH_SIZE,
-                                                          # subset="training",
-                                                          seed=42,
-                                                          class_mode="categorical"
-                                                          # For multiclass use categorical n for binary use binary
-                                                          )
-
-        valid_batches = test_datagen.flow_from_directory(test_dir,
-                                                         target_size=IMAGE_SIZE,
-                                                         shuffle=True,
-                                                         batch_size=BATCH_SIZE,
-                                                         # interpolation = 'lanczos:center', # <--------- center crop
-                                                         # subset="validation",
-                                                         seed=42,
-                                                         class_mode="categorical"
-                                                         # For multiclass use categorical n for binary use binary
-                                                         )
-        x,m = train_ml(model, train_batches, valid_batches, NUM_CLASSES)
-        print('Test loss:', x[0])
-        print('Test accuracy:', x[1])
-        # acc.append(x[1])
-
-        # Cross transfer learning approach from the NWPU dataset
-        print('*'*100)
-        print('Starting cross-transfer learning')
-        # m.trainable=False
-        # # new small model
-        output=m.get_layer('dense_17').output
-        output= Dense(30,activation='softmax')(output)
-        model= Model(inputs=m.inputs, outputs=output)
+        # root_path = "D://Jagannath_dai/NWPU_/1_9/" + str(1 + 1) + '/'
+        # DATASET_PATH = root_path + 'train'
+        # test_dir = root_path + 'val'
+        # # DATASET_PATH = root_path/train'
+        # # test_dir = 'root_path/val'
+        # IMAGE_SIZE = (224, 224)
+        # data_list = os.listdir(DATASET_PATH)
+        # # data_list = os.listdir('D:/COVID/four_classes/splits/f4/train')
+        # # Delete some classes that may interfere
+        # print(len(data_list))
+        # NUM_CLASSES = len(data_list)
+        # BATCH_SIZE = 16  # try reducing batch size or freeze more layers if your GPU runs out of memory
+        #
+        # # Train datagen here is a preprocessor
+        # train_datagen = ImageDataGenerator(rescale=1. / 255,
+        #                                    # rotation_range=50,
+        #                                    # width_shift_range=0.2,
+        #                                    # height_shift_range=0.2,
+        #                                    # shear_range=0.25,
+        #                                    # zoom_range=0.1,
+        #                                    # channel_shift_range=20,
+        #                                    horizontal_flip=True,
+        #                                    # ertical_flip=True,
+        #                                    # validation_split=0.2,
+        #                                    # fill_mode='constant'
+        #                                    )
+        #
+        # test_datagen = ImageDataGenerator(rescale=1. / 255)
+        #
+        # train_batches = train_datagen.flow_from_directory(DATASET_PATH,
+        #                                                   target_size=IMAGE_SIZE,
+        #                                                   shuffle=True,
+        #                                                   interpolation='lanczos:random',  # <--------- random crop
+        #                                                   batch_size=BATCH_SIZE,
+        #                                                   # subset="training",
+        #                                                   seed=42,
+        #                                                   class_mode="categorical"
+        #                                                   # For multiclass use categorical n for binary use binary
+        #                                                   )
+        #
+        # valid_batches = test_datagen.flow_from_directory(test_dir,
+        #                                                  target_size=IMAGE_SIZE,
+        #                                                  shuffle=True,
+        #                                                  batch_size=BATCH_SIZE,
+        #                                                  # interpolation = 'lanczos:center', # <--------- center crop
+        #                                                  # subset="validation",
+        #                                                  seed=42,
+        #                                                  class_mode="categorical"
+        #                                                  # For multiclass use categorical n for binary use binary
+        #                                                  )
+        # x,m = train_ml(model, train_batches, valid_batches, NUM_CLASSES,30)
+        # print('Test loss:', x[0])
+        # print('Test accuracy:', x[1])
+        # # acc.append(x[1])
+        #
+        # # Cross transfer learning approach from the NWPU dataset
+        # print('*'*100)
+        # print('Starting cross-transfer learning')
+        # # m.trainable=False
+        # # # new small model
+        # output=m.get_layer('dense_17').output
+        # output= Dense(30,activation='softmax')(output)
+        # model= Model(inputs=m.inputs, outputs=output)
 
         root_path = "D://Jagannath_dai/AID_/2_8/" + str(i + 1) + '/'
         DATASET_PATH = root_path + 'train'
@@ -383,7 +382,7 @@ if __name__ == '__main__':
                                                          class_mode="categorical"
                                                          # For multiclass use categorical n for binary use binary
                                                          )
-        x = train_ml(model, train_batches, valid_batches, NUM_CLASSES)
+        x = train_ml(model, train_batches, valid_batches, NUM_CLASSES,30)
         print('Test loss:', x[0])
         print('Test accuracy:', x[1])
         acc.append(x[1])
