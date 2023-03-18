@@ -1,4 +1,4 @@
-from tensorflow.keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D, Reshape, Dense, multiply, \
+from tensorflow.keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D, Reshape, Dense, multiply, Multiply,\
     Permute, Concatenate, \
     Conv2D, Add, Activation, Lambda, add
 from tensorflow.keras import backend as K
@@ -61,11 +61,11 @@ def cbam_block(cbam_feature, ratio=8):
 def cbam_block_improved(cbam_feature, ratio=8):
     cbam_channel = channel_attention(cbam_feature, ratio)
     cbam_spatial = spatial_attention(cbam_feature)
-    result1 = multiply([cbam_channel, cbam_spatial]) # was multiply previously and performance was was around 92.4
+    result1 = multiply([cbam_channel, cbam_spatial]) # was multiply previously and performance was around 92.4
     result2 = cbam_block(cbam_feature, ratio)
 
     # combine both types of information
-    cbam_feature = Add()([result1, result2])
+    cbam_feature = Add()([result1, result2]) # previously it was  Add()
     return cbam_feature
 
 

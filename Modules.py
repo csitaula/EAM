@@ -1,4 +1,5 @@
-from tensorflow.keras.layers import GlobalAveragePooling2D, Reshape, Dense, multiply, add, Permute, Conv2D, Add,Concatenate
+from tensorflow.keras.layers import GlobalAveragePooling2D, Reshape, Dense, multiply, add, Permute, Conv2D, Add, \
+    Concatenate,Multiply
 from tensorflow.keras import backend as K
 from cbam_attention import cbam_block_improved
 
@@ -73,7 +74,8 @@ def EACRM(input_tensor):
     lev_3 = cbam_block_improved(input_tensor)  # CBAM modified block
     print(lev_3.shape)
     # res1 = multiply([lev_1, lev_3])
-    res1 = Concatenate()([lev_1, lev_3]) # it was add() previously, could work but memory overflow
+    res1 = Concatenate()(
+        [lev_1, lev_3])
     return res1
 
 

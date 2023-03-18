@@ -27,6 +27,7 @@ import os, math  # , time
 import tensorflow as tf
 import cbam_attention
 import tensorflow as tf
+import atrouspp
 
 config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
@@ -59,6 +60,12 @@ def custom_resnet50(model, classes):
     invert2 = model.get_layer('conv4_block6_out').output
     invert3 = model.get_layer('conv5_block3_out').output
 
+    # GAP features
+    # invert11_g = weighted_pooling(invert11_)
+    # invert1_g = weighted_pooling(invert1)
+    # invert2_g = weighted_pooling(invert2)
+    # invert3_g = weighted_pooling(invert3)
+
     # EARCM module around 92.4%
     invert11_ = Modules.EACRM(invert11_)
     invert1 = Modules.EACRM(invert1)
@@ -78,7 +85,17 @@ def custom_resnet50(model, classes):
     # invert3 = cbam_attention.cbam_block_improved(invert3)
 
     # pool the layer using GAP
-    invert11_ = GlobalAveragePooling2D()(invert11_)
+    # invert11_ = GlobalAveragePooling2D()(invert11_)
+    # invert1_ = GlobalAveragePooling2D()(invert1)
+    # invert2_ = GlobalAveragePooling2D()(invert2)
+    # invert3_ = GlobalAveragePooling2D()(invert3)
+
+    invert11 = atrouspp.AtrousSpatialPyramidPooling(invert11_)
+    invert1 = atrouspp.AtrousSpatialPyramidPooling(invert1)
+    invert2 = atrouspp.AtrousSpatialPyramidPooling(invert2)
+    invert3 = atrouspp.AtrousSpatialPyramidPooling(invert3)
+
+    invert11_ = GlobalAveragePooling2D()(invert11)
     invert1_ = GlobalAveragePooling2D()(invert1)
     invert2_ = GlobalAveragePooling2D()(invert2)
     invert3_ = GlobalAveragePooling2D()(invert3)
@@ -107,7 +124,7 @@ def custom_resnet50(model, classes):
 
 def train_ml(model, train_batches, valid_batches, classes):
     m = custom_resnet50(model, classes)
-    print(m.summary())
+    #print(m.summary())
     # m=model
     NUM_EPOCHS = 50
     LEARNING_RATE = 0.0003
@@ -183,89 +200,83 @@ def train_ml(model, train_batches, valid_batches, classes):
     return x
 
 
-# def custom_resnet50_(model, classes):
-#     alpha = 0.7
-#     invert11 = model.get_layer('conv2_block3_out').output
-#     invert1 = model.get_layer('conv3_block4_out').output
-#     invert2 = model.get_layer('conv4_block6_out').output
-#     invert3 = model.get_layer('conv5_block3_out').output
-#
-#     # pool the layer
-#
-#     # invert11 = cbam_attention.channel_attention(invert11)
-#     a = GlobalAveragePooling2D()(invert11)
-#     a = Lambda(lambda xx: xx * alpha)(a)
-#     m = GlobalMaxPooling2D()(invert11)
-#     m = Lambda(lambda xx: xx * (1 - alpha))(m)
-#     x1 = Add()([a, m])
-#     # x1=GlobalAveragePooling2D()(invert11)
-#
-#     # invert11_ = GlobalAveragePooling2D()(invert11)
-#     # invert1 = cbam_attention.cbam_block(invert1)
-#     # invert1=squeeze_excite_block(invert1)
-#     # invert1 = Modules.spatial_attention(invert1)
-#     a = GlobalAveragePooling2D()(invert1)
-#     a = Lambda(lambda xx: xx * alpha)(a)
-#     m = GlobalMaxPooling2D()(invert1)
-#     m = Lambda(lambda xx: xx * (1 - alpha))(m)
-#     x2 = Add()([a, m])
-#
-#     # invert1_ = GlobalAveragePooling2D()(invert1)
-#     # invert2 = cbam_attention.cbam_block(invert2)
-#     # invert2 = squeeze_excite_block(invert2)
-#     # invert2 = Modules.spatial_attention(invert2)
-#     a = GlobalAveragePooling2D()(invert2)
-#     a = Lambda(lambda xx: xx * alpha)(a)
-#     m = GlobalMaxPooling2D()(invert2)
-#     m = Lambda(lambda xx: xx * (1 - alpha))(m)
-#     x3 = Add()([a, m])
-#
-#     # invert2_ = GlobalAveragePooling2D()(invert2)
-#     # invert3 = cbam_attention.cbam_block(invert3)
-#     # invert3 = Modules.EACRM(invert3)
-#     a = GlobalAveragePooling2D()(invert3)
-#     a = Lambda(lambda xx: xx * alpha)(a)
-#     m = GlobalMaxPooling2D()(invert3)
-#     m = Lambda(lambda xx: xx * (1 - alpha))(m)
-#     x4 = Add()([a, m])
-#
-#     # combine all of them
-#     comb = concatenate([
-#         # invert11_,
-#         # invert1_,
-#         # invert2_,
-#         # invert3_,
-#         x1,
-#         x2,
-#         x3,
-#         x4
-#     ])
-#
-#     # comb=BatchNormalization()(comb)
-#     dense = Dense(1024, activation='relu')(comb)  # reduced the 1024->768
-#     dense = Dense(768, activation='relu')(dense)  # reduced the 1024->768
-#     # softmax
-#     output = Dense(classes, activation='softmax')(dense)
-#     model = Model(inputs=model.input, outputs=output)
-#     return model
+def custom_resnet50_(model, classes):
+    alpha = 0.7
+    invert11 = model.get_layer('conv2_block3_out').output
+    invert1 = model.get_layer('conv3_block4_out').output
+    invert2 = model.get_layer('conv4_block6_out').output
+    invert3 = model.get_layer('conv5_block3_out').output
+
+    # pool the layer
+
+    # invert11 = cbam_attention.channel_attention(invert11)
+    a = GlobalAveragePooling2D()(invert11)
+    a = Lambda(lambda xx: xx * alpha)(a)
+    m = GlobalMaxPooling2D()(invert11)
+    m = Lambda(lambda xx: xx * (1 - alpha))(m)
+    x1 = Add()([a, m])
+    # x1=GlobalAveragePooling2D()(invert11)
+
+    # invert11_ = GlobalAveragePooling2D()(invert11)
+    # invert1 = cbam_attention.cbam_block(invert1)
+    # invert1=squeeze_excite_block(invert1)
+    # invert1 = Modules.spatial_attention(invert1)
+    a = GlobalAveragePooling2D()(invert1)
+    a = Lambda(lambda xx: xx * alpha)(a)
+    m = GlobalMaxPooling2D()(invert1)
+    m = Lambda(lambda xx: xx * (1 - alpha))(m)
+    x2 = Add()([a, m])
+
+    # invert1_ = GlobalAveragePooling2D()(invert1)
+    # invert2 = cbam_attention.cbam_block(invert2)
+    # invert2 = squeeze_excite_block(invert2)
+    # invert2 = Modules.spatial_attention(invert2)
+    a = GlobalAveragePooling2D()(invert2)
+    a = Lambda(lambda xx: xx * alpha)(a)
+    m = GlobalMaxPooling2D()(invert2)
+    m = Lambda(lambda xx: xx * (1 - alpha))(m)
+    x3 = Add()([a, m])
+
+    # invert2_ = GlobalAveragePooling2D()(invert2)
+    # invert3 = cbam_attention.cbam_block(invert3)
+    # invert3 = Modules.EACRM(invert3)
+    a = GlobalAveragePooling2D()(invert3)
+    a = Lambda(lambda xx: xx * alpha)(a)
+    m = GlobalMaxPooling2D()(invert3)
+    m = Lambda(lambda xx: xx * (1 - alpha))(m)
+    x4 = Add()([a, m])
+
+    # combine all of them
+    comb = concatenate([
+        # invert11_,
+        # invert1_,
+        # invert2_,
+        # invert3_,
+        x1,
+        x2,
+        x3,
+        x4
+    ])
+
+    # comb=BatchNormalization()(comb)
+    dense = Dense(1024, activation='relu')(comb)  # reduced the 1024->768
+    dense = Dense(768, activation='relu')(dense)  # reduced the 1024->768
+    # softmax
+    output = Dense(classes, activation='softmax')(dense)
+    model = Model(inputs=model.input, outputs=output)
+    return model
 
 
 if __name__ == '__main__':
-    model = ResNet50(include_top=False, weights='imagenet', input_shape=(224, 224, 3))
-    # model =ResNet50()
-    model.summary()
-    model.trainable = True
-
-    # for layer in model.layers[:20]:  # upto 36 is alright
-    #     layer.trainable = False
-    # j=0
-    # for i in model.layers:
-    #     print(str(j)+str(i.name))
-    #     j=j+1
     acc = []
-    for i in range(0, 20):
+    for i in range(2, 20):
+        print('Fold:'+ str(i+1))
+        print("*"*100)
+        model = ResNet50(include_top=False, weights='imagenet', input_shape=(224, 224, 3))
+        model.trainable = True
         # data load and train
-        root_path = "D://Jagannath_dai/AID_/2_8/" + str(i + 1) + '/'
+        # root_path = "D://Jagannath_dai/AID_/2_8/" + str(i + 1) + '/'
+        root_path = "C:/Users/csitaula/Desktop/Aerial/AID_/2_8/" + str(i + 1) + '/'
         DATASET_PATH = root_path + 'train'
         test_dir = root_path + 'val'
         # DATASET_PATH = root_path/train'
@@ -319,11 +330,8 @@ if __name__ == '__main__':
         print('Test loss:', x[0])
         print('Test accuracy:', x[1])
         acc.append(x[1])
-        # release memory
-        # K.clear_session()
-        # del model
-        # del m
-        # break;
+        del x
+        del model
 
     # print the accuracy
     print(acc)

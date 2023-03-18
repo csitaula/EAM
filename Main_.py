@@ -332,7 +332,8 @@ if __name__ == '__main__':
         # output= Dense(30,activation='softmax')(output)
         # model= Model(inputs=m.inputs, outputs=output)
 
-        root_path = "D://Jagannath_dai/AID_/2_8/" + str(i + 1) + '/'
+        #root_path = "D://Jagannath_dai/AID_/2_8/" + str(i + 1) + '/'
+        root_path="C:/Users/csitaula/Desktop/Aerial/AID_/2_8/"+str(i+1)+'/'
         DATASET_PATH = root_path + 'train'
         test_dir = root_path + 'val'
         # DATASET_PATH = root_path/train'
