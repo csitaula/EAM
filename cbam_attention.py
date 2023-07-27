@@ -5,7 +5,7 @@ from tensorflow.keras import backend as K
 from tensorflow.python.keras.activations import sigmoid  # keras.activations import sigmoid
 
 
-# https://github.com/kobiso/CBAM-keras/tree/master/models
+# source: https://github.com/kobiso/CBAM-keras/tree/master/models
 # def attach_attention_module(net, attention_module):
 #     if attention_module == 'se_block':  # SE_block
 #         net = se_block(net)
