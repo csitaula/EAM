@@ -1,3 +1,4 @@
+# source: https://github.com/titu1994/keras-squeeze-excite-network/blob/master/se.py
 from tensorflow.keras.layers import GlobalAveragePooling2D, Reshape, Dense, multiply, add, Permute, Conv2D, Add, \
     Concatenate,Multiply
 from tensorflow.keras import backend as K
