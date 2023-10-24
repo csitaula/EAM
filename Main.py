@@ -199,77 +199,9 @@ def train_ml(model, train_batches, valid_batches, classes):
     #  print('Testing time:' + str(time.clock() - test_s_time) + 'secs.')
     return x
 
-
-def custom_resnet50_(model, classes):
-    alpha = 0.7
-    invert11 = model.get_layer('conv2_block3_out').output
-    invert1 = model.get_layer('conv3_block4_out').output
-    invert2 = model.get_layer('conv4_block6_out').output
-    invert3 = model.get_layer('conv5_block3_out').output
-
-    # pool the layer
-
-    # invert11 = cbam_attention.channel_attention(invert11)
-    a = GlobalAveragePooling2D()(invert11)
-    a = Lambda(lambda xx: xx * alpha)(a)
-    m = GlobalMaxPooling2D()(invert11)
-    m = Lambda(lambda xx: xx * (1 - alpha))(m)
-    x1 = Add()([a, m])
-    # x1=GlobalAveragePooling2D()(invert11)
-
-    # invert11_ = GlobalAveragePooling2D()(invert11)
-    # invert1 = cbam_attention.cbam_block(invert1)
-    # invert1=squeeze_excite_block(invert1)
-    # invert1 = Modules.spatial_attention(invert1)
-    a = GlobalAveragePooling2D()(invert1)
-    a = Lambda(lambda xx: xx * alpha)(a)
-    m = GlobalMaxPooling2D()(invert1)
-    m = Lambda(lambda xx: xx * (1 - alpha))(m)
-    x2 = Add()([a, m])
-
-    # invert1_ = GlobalAveragePooling2D()(invert1)
-    # invert2 = cbam_attention.cbam_block(invert2)
-    # invert2 = squeeze_excite_block(invert2)
-    # invert2 = Modules.spatial_attention(invert2)
-    a = GlobalAveragePooling2D()(invert2)
-    a = Lambda(lambda xx: xx * alpha)(a)
-    m = GlobalMaxPooling2D()(invert2)
-    m = Lambda(lambda xx: xx * (1 - alpha))(m)
-    x3 = Add()([a, m])
-
-    # invert2_ = GlobalAveragePooling2D()(invert2)
-    # invert3 = cbam_attention.cbam_block(invert3)
-    # invert3 = Modules.EACRM(invert3)
-    a = GlobalAveragePooling2D()(invert3)
-    a = Lambda(lambda xx: xx * alpha)(a)
-    m = GlobalMaxPooling2D()(invert3)
-    m = Lambda(lambda xx: xx * (1 - alpha))(m)
-    x4 = Add()([a, m])
-
-    # combine all of them
-    comb = concatenate([
-        # invert11_,
-        # invert1_,
-        # invert2_,
-        # invert3_,
-        x1,
-        x2,
-        x3,
-        x4
-    ])
-
-    # comb=BatchNormalization()(comb)
-    dense = Dense(1024, activation='relu')(comb)  # reduced the 1024->768
-    dense = Dense(768, activation='relu')(dense)  # reduced the 1024->768
-    # softmax
-    output = Dense(classes, activation='softmax')(dense)
-    model = Model(inputs=model.input, outputs=output)
-    return model
-
-
 if __name__ == '__main__':
     acc = []
-    for i in range(2, 20):
+    for i in range(0, 5):
         print('Fold:'+ str(i+1))
         print("*"*100)
         model = ResNet50(include_top=False, weights='imagenet', input_shape=(224, 224, 3))
